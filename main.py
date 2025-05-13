@@ -15,7 +15,17 @@ async def on_ready():
 # 명령어 추가
 @bot.event
 async def setup_hook():
-    await bot.load_extension("cogs.hello")
+    try:
+        await bot.load_extension("cogs.hello")
+        print("✅ cogs.hello loaded")
+    except Exception as e:
+        print(f"❌ Failed to load cogs.hello: {e}")
+
+    try:
+        await bot.load_extension("cogs.time_tracking")
+        print("✅ cogs.time_tracking loaded")
+    except Exception as e:
+        print(f"❌ Failed to load cogs.time_tracking: {e}")
 
 if __name__ == "__main__":
     bot.run(env.TOKEN)
