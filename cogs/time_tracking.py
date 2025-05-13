@@ -10,7 +10,8 @@ class StudyTracker(commands.Cog):
         self.bot = bot                                 # 봇 인스턴스
         self.user_voice_times = {}                     # 각 유저의 입장 시간을 저장하는 딕셔너리 (key: user.id, value: 입장 시간)
         self.study_channel_name = "공부방"               # 추적할 음성 채널 이름
-        self.alert_channel_name = "스터디-알림"           # 로그를 보낼 텍스트 채널 이름
+        self.alert_channel_name = "디스코드-봇-만드는-채널"  # 로그를 보낼 테스트용 텍스트 채널 이름
+        # self.alert_channel_name = "스터디-알림"           # 로그를 보낼 텍스트 채널 이름
         self.kst = ZoneInfo("Asia/Seoul")               # ✅ 한국 시간대 설정
 
     @commands.Cog.listener() # 음성 채널 상태가 변경될 때 자동으로 호출
@@ -33,7 +34,7 @@ class StudyTracker(commands.Cog):
             if alert_channel:
                 now = datetime.now(self.kst).strftime('%Y-%m-%d %H:%M:%S')  # 현재 시간 포맷
                 await alert_channel.send(
-                    f"📌 **{member.display_name}**님이 `{self.study_channel_name}`에서 공부를 시작했다 삐!"
+                    f"📌 **{member.mention}**님이 `{self.study_channel_name}`에서 공부를 시작했다 삐!"
                     f"(`{now} KST`)"
                 )
 
@@ -49,7 +50,7 @@ class StudyTracker(commands.Cog):
                 # 텍스트 알림 채널 찾기
                 if alert_channel:
                     await alert_channel.send(
-                        f"✅ **{member.display_name}**님이 `{self.study_channel_name}`에서 **퇴장**했다 삐!\n"
+                        f"✅ **{member.mention}**님이 `{self.study_channel_name}`에서 **퇴장**했다 삐!\n"
                         f"🕒 총 공부 시간: **{minutes}분**! {GoodJobMessage.random()}"
                         f"({start_time.strftime('%H:%M')} ~ {end_time.strftime('%H:%M')} KST)"
                     )
