@@ -10,6 +10,7 @@ python = "^3.11"
 discord = "^2.3.2"
 asyncio = "^3.4.3"
 pydantic-settings = "^2.9.1"
+tzdata = "^2025.2"
 
 
 [build-system]
