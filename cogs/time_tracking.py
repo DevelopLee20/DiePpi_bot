@@ -9,9 +9,10 @@ class StudyTracker(commands.Cog):
     def __init__(self, bot):
         self.bot = bot                                 # 봇 인스턴스
         self.user_voice_times = {}                     # 각 유저의 입장 시간을 저장하는 딕셔너리 (key: user.id, value: 입장 시간)
-        self.study_channel_name = "공부방"               # 추적할 음성 채널 이름
-        self.alert_channel_name = "디스코드-봇-만드는-채널"  # 로그를 보낼 테스트용 텍스트 채널 이름
+        # self.study_channel_name = "공부방"               # 추적할 음성 채널 이름
+        self.study_channel_name = "디스코드-봇-만드는-채널"   # 추적할 음성 채널 이름
         # self.alert_channel_name = "스터디-알림"           # 로그를 보낼 텍스트 채널 이름
+        self.alert_channel_name = "디스코드-봇-만드는-채널"  # 로그를 보낼 테스트용 텍스트 채널 이름
         self.kst = ZoneInfo("Asia/Seoul")               # ✅ 한국 시간대 설정
 
     @commands.Cog.listener() # 음성 채널 상태가 변경될 때 자동으로 호출
@@ -26,11 +27,9 @@ class StudyTracker(commands.Cog):
         alert_channel = discord.utils.get(guild.text_channels, name=self.alert_channel_name)
 
         # ✅ 사용자가 '공부방'에 새로 입장했을 때
-        if after.channel and after.channel.name == self.study_channel_name:
+        if member.id not in self.user_voice_times and after.channel and after.channel.name == self.study_channel_name:
             self.user_voice_times[member.id] = datetime.now(self.kst)
 
-            # 알림 보낼 텍스트 채널 찾기
-            alert_channel = discord.utils.get(guild.text_channels, name=self.alert_channel_name)
             if alert_channel:
                 now = datetime.now(self.kst).strftime('%Y-%m-%d %H:%M:%S')  # 현재 시간 포맷
                 await alert_channel.send(
