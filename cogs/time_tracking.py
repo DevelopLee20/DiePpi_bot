@@ -4,6 +4,8 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from core.enums import GoodJobMessage
+from models.study_model import StudyModel
+from db.study_collection import StudyCollection
 
 class StudyTracker(commands.Cog):
     def __init__(self, bot):
@@ -50,8 +52,23 @@ class StudyTracker(commands.Cog):
                 if alert_channel:
                     await alert_channel.send(
                         f"✅ **{member.mention}**님이 `{self.study_channel_name}`에서 **퇴장**했다 삐!\n"
-                        f"🕒 총 공부 시간: **{minutes}분**! {GoodJobMessage.random()}"
+                        f"🕒 공부 시간: **{minutes}분**! {GoodJobMessage.random()}"
                         f"({start_time.strftime('%H:%M')} ~ {end_time.strftime('%H:%M')} KST)"
+                    )
+                    
+                    # DB에 공부 기록 저장
+                    study_record = StudyModel(
+                        user_id=str(member.id),
+                        start_time=start_time,
+                        end_time=end_time,
+                        total_min=minutes
+                    )
+                    await StudyCollection.insert_study(study_record)
+                    total_minutes = await StudyCollection.find_total_study_min_in_today(str(member.id))
+                    
+                    # 총 공부량 메시지 보내기
+                    await alert_channel.send(
+                        f"📊 오늘 공부한 총 시간은 **{total_minutes}분**이다 삐!"
                     )
 
 # Cog 등록을 위한 필수 비동기 setup 함수
