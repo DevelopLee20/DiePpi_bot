@@ -15,7 +15,6 @@ class StudyTracker(commands.Cog):
         self.study_channel_name = "디스코드-봇-만드는-채널"   # 추적할 음성 채널 이름
         # self.alert_channel_name = "스터디-알림"           # 로그를 보낼 텍스트 채널 이름
         self.alert_channel_name = "디스코드-봇-만드는-채널"  # 로그를 보낼 테스트용 텍스트 채널 이름
-        self.kst = ZoneInfo("Asia/Seoul")               # ✅ 한국 시간대 설정
 
     @commands.Cog.listener() # 음성 채널 상태가 변경될 때 자동으로 호출
     async def on_voice_state_update(self, member, before, after):
@@ -30,10 +29,10 @@ class StudyTracker(commands.Cog):
 
         # ✅ 사용자가 '공부방'에 새로 입장했을 때
         if member.id not in self.user_voice_times and after.channel and after.channel.name == self.study_channel_name:
-            self.user_voice_times[member.id] = datetime.now(self.kst)
+            self.user_voice_times[member.id] = datetime.now()
 
             if alert_channel:
-                now = datetime.now(self.kst).strftime('%Y-%m-%d %H:%M:%S')  # 현재 시간 포맷
+                now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 현재 시간 포맷
                 await alert_channel.send(
                     f"📌 **{member.mention}**님이 `{self.study_channel_name}`에서 공부를 시작했다 삐!"
                     f"(`{now} KST`)"
@@ -44,7 +43,7 @@ class StudyTracker(commands.Cog):
             # 저장된 입장 시간 가져오기 (없으면 None)
             start_time = self.user_voice_times.pop(member.id, None)
             if start_time:
-                end_time = datetime.now(self.kst)  # 퇴장 시간
+                end_time = datetime.now()  # 퇴장 시간
                 duration = end_time - start_time  # 공부한 전체 시간 (datetime.timedelta)
                 minutes = int(duration.total_seconds() // 60)  # 분 단위로 환산
 
