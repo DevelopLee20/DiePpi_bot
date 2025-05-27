@@ -1,5 +1,6 @@
-from enum import Enum
 import random
+from enum import Enum
+
 
 class GoodJobMessage(Enum):
     GREAT = "대단하다 삐!"
