@@ -7,6 +7,7 @@ from core.enums import GoodJobMessage, Mode
 from core.env import env
 from db.study_collection import StudyCollection
 from models.study_model import StudyModel
+from utils.time_utils import min_to_hhmm_str
 
 
 class StudyTracker(commands.Cog):
@@ -89,7 +90,7 @@ class StudyTracker(commands.Cog):
 
                     # 총 공부량 메시지 보내기
                     await alert_channel.send(
-                        f"📊 오늘 공부한 총 시간은 **{total_minutes}분**이다 삐!"
+                        f"📊 오늘 공부한 총 시간은 **{min_to_hhmm_str(total_minutes)}**이다 삐!"
                     )
 
 
