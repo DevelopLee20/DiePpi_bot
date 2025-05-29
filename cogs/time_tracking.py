@@ -3,7 +3,8 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-from core.enums import GoodJobMessage
+from core.enums import GoodJobMessage, Mode
+from core.env import env
 from db.study_collection import StudyCollection
 from models.study_model import StudyModel
 
@@ -14,12 +15,14 @@ class StudyTracker(commands.Cog):
         self.user_voice_times = (
             {}
         )  # 각 유저의 입장 시간을 저장하는 딕셔너리 (key: user.id, value: 입장 시간)
-        # self.study_channel_name = "공부방"               # 추적할 음성 채널 이름
-        self.study_channel_name = "디스코드-봇-만드는-채널"  # 추적할 음성 채널 이름
-        # self.alert_channel_name = "스터디-알림"           # 로그를 보낼 텍스트 채널 이름
-        self.alert_channel_name = (
-            "디스코드-봇-만드는-채널"  # 로그를 보낼 테스트용 텍스트 채널 이름
-        )
+        if env.MODE == Mode.PROD:
+            print("☑️ PROD mode.")
+            self.study_channel_name = "공부방"
+            self.alert_channel_name = "스터디-알림"
+        else:
+            print("☑️ DEV mode.")
+            self.study_channel_name = "디스코드-봇-만드는-채널"
+            self.alert_channel_name = "디스코드-봇-만드는-채널"
 
     @commands.Cog.listener()  # 음성 채널 상태가 변경될 때 자동으로 호출
     async def on_voice_state_update(self, member, before, after):

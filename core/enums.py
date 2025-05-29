@@ -13,3 +13,8 @@ class GoodJobMessage(Enum):
     @classmethod
     def random(cls):
         return random.choice(list(cls)).value
+
+
+class Mode(Enum):
+    PROD = "PROD"
+    DEV = "DEV"
