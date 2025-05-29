@@ -15,7 +15,7 @@ class StudyTracker(commands.Cog):
         self.user_voice_times = (
             {}
         )  # 각 유저의 입장 시간을 저장하는 딕셔너리 (key: user.id, value: 입장 시간)
-        if env.MODE == Mode.PROD:
+        if env.MODE == Mode.PROD.value:
             print("☑️ PROD mode.")
             self.study_channel_name = "공부방"
             self.alert_channel_name = "스터디-알림"
