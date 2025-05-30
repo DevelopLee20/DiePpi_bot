@@ -1,32 +1,21 @@
 import discord
 from discord.ext import commands
 
-from core.enums import Mode, Role
-from core.env import env
+from core.enums import Role
 from core.messages import upgrade_role_message
 from db.study_collection import StudyCollection
+from main import ALERT_CHANNEL
 
 
 class RoleChange(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        if env.MODE == Mode.PROD.value:
-            print("☑️ PROD mode.")
-            self.study_channel_name = "공부방"
-            self.alert_channel_name = "스터디-알림"
-        else:
-            print("☑️ DEV mode.")
-            self.study_channel_name = "디스코드-봇-만드는-채널"
-            self.alert_channel_name = "디스코드-봇-만드는-채널"
-
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         guild = member.guild
 
-        alert_channel = discord.utils.get(
-            guild.text_channels, name=self.alert_channel_name
-        )
+        alert_channel = discord.utils.get(guild.text_channels, name=ALERT_CHANNEL)
 
         total_study_min = await StudyCollection.find_total_study_min_in_today(
             str(member.id)

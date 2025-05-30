@@ -3,10 +3,9 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-from core.enums import Mode
-from core.env import env
 from core.messages import end_study_message, start_study_message
 from db.study_collection import StudyCollection
+from main import ALERT_CHANNEL, STUDY_CHANNEL
 from models.study_model import StudyModel
 
 
@@ -16,14 +15,6 @@ class StudyTracker(commands.Cog):
         self.user_voice_times = (
             {}
         )  # 각 유저의 입장 시간을 저장하는 딕셔너리 (key: user.id, value: 입장 시간)
-        if env.MODE == Mode.PROD.value:
-            print("☑️ PROD mode.")
-            self.study_channel_name = "공부방"
-            self.alert_channel_name = "스터디-알림"
-        else:
-            print("☑️ DEV mode.")
-            self.study_channel_name = "디스코드-봇-만드는-채널"
-            self.alert_channel_name = "디스코드-봇-만드는-채널"
 
     @commands.Cog.listener()  # 음성 채널 상태가 변경될 때 자동으로 호출
     async def on_voice_state_update(self, member, before, after):
@@ -34,15 +25,13 @@ class StudyTracker(commands.Cog):
         guild = member.guild  # 유저가 속한 서버 객체
 
         # 모든 채널 조회 후 이름과 맞는 채널만 반환
-        alert_channel = discord.utils.get(
-            guild.text_channels, name=self.alert_channel_name
-        )
+        alert_channel = discord.utils.get(guild.text_channels, name=ALERT_CHANNEL)
 
         # ✅ 사용자가 '공부방'에 새로 입장했을 때
         if (
             member.id not in self.user_voice_times
             and after.channel
-            and after.channel.name == self.study_channel_name
+            and after.channel.name == STUDY_CHANNEL
         ):
             self.user_voice_times[member.id] = datetime.now()
 
@@ -52,7 +41,7 @@ class StudyTracker(commands.Cog):
         # ✅ 사용자가 '공부방'에서 나가거나 다른 채널로 이동한 경우
         elif (
             before.channel
-            and before.channel.name == self.study_channel_name
+            and before.channel.name == STUDY_CHANNEL
             and (after.channel != before.channel)
         ):
             # 저장된 입장 시간 가져오기 (없으면 None)
