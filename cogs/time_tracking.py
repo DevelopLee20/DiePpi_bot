@@ -3,11 +3,11 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-from core.enums import GoodJobMessage, Mode
+from core.enums import Mode
 from core.env import env
+from core.messages import end_study_message, start_study_message
 from db.study_collection import StudyCollection
 from models.study_model import StudyModel
-from utils.time_utils import min_to_hhmm_str
 
 
 class StudyTracker(commands.Cog):
@@ -47,11 +47,7 @@ class StudyTracker(commands.Cog):
             self.user_voice_times[member.id] = datetime.now()
 
             if alert_channel:
-                now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 현재 시간 포맷
-                await alert_channel.send(
-                    f"📌 **{member.mention}**님이 `{self.study_channel_name}`에서 공부를 시작했다 삐!"
-                    f"(`{now} KST`)"
-                )
+                await alert_channel.send(start_study_message(member.mention))
 
         # ✅ 사용자가 '공부방'에서 나가거나 다른 채널로 이동한 경우
         elif (
@@ -70,12 +66,6 @@ class StudyTracker(commands.Cog):
 
                 # 텍스트 알림 채널 찾기
                 if alert_channel:
-                    await alert_channel.send(
-                        f"✅ **{member.mention}**님이 `{self.study_channel_name}`에서 **퇴장**했다 삐!\n"
-                        f"🕒 공부 시간: **{minutes}분**! {GoodJobMessage.random()}"
-                        f"({start_time.strftime('%H:%M')} ~ {end_time.strftime('%H:%M')} KST)"
-                    )
-
                     # DB에 공부 기록 저장
                     study_record = StudyModel(
                         user_id=str(member.id),
@@ -83,6 +73,7 @@ class StudyTracker(commands.Cog):
                         end_time=end_time,
                         total_min=minutes,
                     )
+
                     await StudyCollection.insert_study(study_record)
                     total_minutes = await StudyCollection.find_total_study_min_in_today(
                         str(member.id)
@@ -90,7 +81,7 @@ class StudyTracker(commands.Cog):
 
                     # 총 공부량 메시지 보내기
                     await alert_channel.send(
-                        f"📊 오늘 공부한 총 시간은 **{min_to_hhmm_str(total_minutes)}**이다 삐!"
+                        end_study_message(member.mention, minutes, total_minutes)
                     )
 
 
