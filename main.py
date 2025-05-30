@@ -20,6 +20,7 @@ async def setup_hook():
     extensions_name = [
         "cogs.hello",
         "cogs.time_tracking",
+        "cogs.role_change",
     ]
 
     for ext in extensions_name:
