@@ -3,6 +3,7 @@ from datetime import datetime
 
 from db.client import db
 from models.study_model import StudyModel
+from utils.time_utils import get_study_day_range
 
 
 class StudyCollection:
@@ -16,9 +17,13 @@ class StudyCollection:
 
     @classmethod
     async def find_total_study_min_in_today(cls, user_id: str) -> int:
-        today = datetime.now().date()
-        start_of_today = datetime.combine(today, datetime.min.time())
-        end_of_today = datetime.combine(today, datetime.max.time())
+        """오늘 오전 4시부터 다음날 오전 4시까지의 총 공부시간을 계산합니다.
+        Args:
+            user_id (str): 사용자의 ID
+        Returns:
+            int: 오늘 오전부터 다음날 오전 4시까지의 총 공부시간 (분 단위)
+        """
+        start_of_today, end_of_today = get_study_day_range(datetime.now())
 
         total_time = await cls._collection.aggregate(
             [
