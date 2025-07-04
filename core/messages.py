@@ -22,3 +22,7 @@ def end_study_message(mention: str, minutes: int, total_minute: int) -> str:
 
 def upgrade_role_message(mention: str, role_name: str) -> str:
     return f"🎉 **{mention}**님이 **{role_name}** 역할을 획득했다 삐! 축하한다 삐!"
+
+
+def gemini_response_message(mention: str, response: str) -> str:
+    return f"{mention} {response}"

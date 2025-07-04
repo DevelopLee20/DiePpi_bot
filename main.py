@@ -2,8 +2,6 @@ import logging
 
 import discord
 from discord.ext import commands
-from google import genai
-from google.genai import types
 
 from core.env import env
 
@@ -14,7 +12,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
-gemini_client = None
 
 
 @bot.event
@@ -40,6 +37,7 @@ async def setup_hook():
         "cogs.hello",
         "cogs.time_tracking",
         "cogs.role_change",
+        "cogs.gemini",
     ]
 
     for idx, ext in enumerate(extensions_name):
@@ -50,22 +48,6 @@ async def setup_hook():
             logger.error(f"❌ Failed to load {ext}: {e}")
 
     logger.info(MODE_output)
-
-    # GEMINI 연동 후 채팅 열기
-    global gemini_client
-
-    try:
-        client = genai.Client(api_key=env.GEMINI_API_KEY)
-        gemini_chat = client.chats.create(
-            model="gemini-2.0-flash-lite",
-            config=types.GenerateContentConfig(
-                system_instruction="50자 이내;간단한 설명;문장끝은 항상 삐!"
-            ),
-        )
-        gemini_client = gemini_chat
-        logging.info("✅ Gemini client initialized successfully.")
-    except Exception as e:
-        logger.error(f"❌ Failed to initialize Gemini client: {e}")
 
 
 if __name__ == "__main__":
