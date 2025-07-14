@@ -3,6 +3,7 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
+from core.gemini_client import GeminiClient
 from core.messages import end_study_message, start_study_message
 from db.study_collection import StudyCollection
 from main import ALERT_CHANNEL, STUDY_CHANNEL
@@ -15,6 +16,7 @@ class StudyTracker(commands.Cog):
         self.user_voice_times = (
             {}
         )  # 각 유저의 입장 시간을 저장하는 딕셔너리 (key: user.id, value: 입장 시간)
+        self.gemini_client = None
 
     @commands.Cog.listener()  # 음성 채널 상태가 변경될 때 자동으로 호출
     async def on_voice_state_update(self, member, before, after):
@@ -68,9 +70,20 @@ class StudyTracker(commands.Cog):
                         str(member.id)
                     )
 
+                    if self.gemini_client is None:
+                        self.gemini_client = GeminiClient(
+                            '공부시간에 따른 간단한 격려;문장끝은 항상 "삐!";공부시간이 크면 큰격려;작으면 비난'
+                        )
+
+                    status, text = await self.gemini_client.create_gemini_message(
+                        f"공부시간:{total_minutes}분"
+                    )
+
                     # 총 공부량 메시지 보내기
                     await alert_channel.send(
-                        end_study_message(member.mention, minutes, total_minutes)
+                        end_study_message(
+                            member.mention, minutes, total_minutes, text, status
+                        )
                     )
 
 

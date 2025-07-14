@@ -19,7 +19,7 @@ class GeminiClient:
 
         self.client = gemini_chat
 
-    async def create_gemini_message(self, input_word: str, ctx) -> tuple[bool, str]:
+    async def create_gemini_message(self, input_word: str) -> tuple[bool, str]:
         if self.client is None:
             await self.initialize()
         try:

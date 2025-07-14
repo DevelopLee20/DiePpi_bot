@@ -11,7 +11,7 @@ class GeminiCog(commands.Cog):
 
     @commands.command(name="단어검색")
     async def gemini_response_command(self, ctx, input_word: str):
-        status_code, response = await self.gemini.create_gemini_message(input_word, ctx)
+        status_code, response = await self.gemini.create_gemini_message(input_word)
         if status_code:
             text = gemini_response_message(ctx.author.mention, response)
         else:
