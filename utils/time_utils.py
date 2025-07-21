@@ -10,8 +10,8 @@ def min_to_hhmm_str(minutes: int) -> str:
 def get_study_day_range(time_now: datetime) -> tuple[datetime, datetime]:
     start_day = time_now.date()
 
-    # 새벽 4시 이전일 때, 전날 기준으로 처리
-    if time_now.hour < 4:
+    # 새벽 6시 이전일 때, 전날 기준으로 처리
+    if time_now.hour < 6:
         start_day -= timedelta(days=1)
 
     start_time = datetime.combine(start_day, time(4, 0))
