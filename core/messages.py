@@ -12,6 +12,10 @@ def start_study_message(mention: str) -> str:
     return f"{mention}님이 공부를 시작했다 삐!"
 
 
+def attend_study_message(mention: str) -> str:
+    return f"{mention}님 출석 삐!"
+
+
 def end_study_message(
     mention: str, minutes: int, total_minute: int, text: str, status: bool
 ) -> str:

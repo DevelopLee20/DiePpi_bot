@@ -4,7 +4,8 @@ import discord
 from discord.ext import commands
 
 from core.gemini_client import GeminiClient
-from core.messages import end_study_message, start_study_message
+from core.messages import attend_study_message, end_study_message, start_study_message
+from db.attend_collection import AttendCollection
 from db.study_collection import StudyCollection
 from main import ALERT_CHANNEL, STUDY_CHANNEL
 from models.study_model import StudyModel
@@ -37,8 +38,13 @@ class StudyTracker(commands.Cog):
         ):
             self.user_voice_times[member.id] = datetime.now()
 
-            if alert_channel:
+            if alert_channel:  # 입장 했을 때
                 await alert_channel.send(start_study_message(member.mention))
+
+                # 최초 1회만 출석체크
+                if not await AttendCollection.get_today_user_is_attend(str(member.id)):
+                    await AttendCollection.insert_attend(str(member.id), datetime.now())
+                    await alert_channel.send(attend_study_message(member.mention))
 
         # ✅ 사용자가 '공부방'에서 나가거나 다른 채널로 이동한 경우
         elif (
