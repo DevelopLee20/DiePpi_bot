@@ -13,7 +13,7 @@ def start_study_message(mention: str) -> str:
 
 
 def attend_study_message(mention: str) -> str:
-    return f"{mention}님 출석 삐!"
+    return f"{mention}님 출석체크 완료! 삐!"
 
 
 def end_study_message(
