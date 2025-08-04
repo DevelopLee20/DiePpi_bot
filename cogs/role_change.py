@@ -31,6 +31,16 @@ class RoleChange(commands.Cog):
                     upgrade_role_message(member.mention, role.name)
                 )
 
+        if total_study_min > 360:
+            role = discord.utils.get(
+                guild.roles, name=Role.SENIOR_FAIRY.value
+            )  # 시니어 요정 역할
+            if role and role not in member.roles:
+                await member.add_roles(role)
+                await alert_channel.send(
+                    upgrade_role_message(member.mention, role.name)
+                )
+
 
 async def setup(bot):
     await bot.add_cog(RoleChange(bot))
