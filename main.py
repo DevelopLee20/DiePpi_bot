@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 intents = discord.Intents.default()
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="/", intents=intents)
 
 
 @bot.event
@@ -47,6 +47,7 @@ async def setup_hook():
         except Exception as e:
             logger.error(f"❌ Failed to load {ext}: {e}")
 
+    await bot.tree.sync()
     logger.info(MODE_output)
 
 
