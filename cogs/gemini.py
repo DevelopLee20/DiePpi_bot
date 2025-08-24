@@ -18,13 +18,17 @@ class GeminiCog(commands.Cog):
     async def gemini_response_command(
         self, interaction: discord.Interaction, input_word: str
     ):
+        # 디스코드에게 생각중이라는 상태 전달
+        await interaction.response.defer(thinking=True)
+
         status_code, response = await self.gemini.create_gemini_message(input_word)
         if status_code:
             text = gemini_response_message(interaction.user.mention, response)
         else:
             text = response
 
-        await interaction.response.send_message(text)
+        # 생각중이라는 상태를 끝내고, 최종 결과 반환
+        await interaction.followup.send(text)
 
 
 async def setup(bot):
