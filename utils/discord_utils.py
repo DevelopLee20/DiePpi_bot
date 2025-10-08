@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 import discord
 
@@ -8,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 def get_text_channel_by_name(
     guild: discord.Guild, channel_name: str
-) -> Optional[discord.TextChannel]:
+) -> discord.TextChannel | None:
     """서버에서 텍스트 채널을 이름으로 찾습니다.
 
     Args:
