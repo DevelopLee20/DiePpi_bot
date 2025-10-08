@@ -4,7 +4,6 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-from core.gemini_client import GeminiClient
 from core.messages import attend_study_message, end_study_message, start_study_message
 from db.attend_collection import AttendCollection
 from db.study_collection import StudyCollection
@@ -18,16 +17,14 @@ logger = logging.getLogger(__name__)
 class StudyTracker(commands.Cog):
     """음성 채널 입장/퇴장을 추적하여 공부 시간을 기록하는 Cog."""
 
-    def __init__(self, bot: commands.Bot, gemini_instruction: str) -> None:
+    def __init__(self, bot: commands.Bot) -> None:
         """StudyTracker 초기화.
 
         Args:
             bot: Discord bot 인스턴스
-            gemini_instruction: Gemini 클라이언트 instruction
         """
         self.bot: commands.Bot = bot
         self.user_voice_times: dict[int, datetime] = {}
-        self.gemini_client: GeminiClient = GeminiClient(gemini_instruction)
 
     def _is_study_channel_join(
         self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState
@@ -88,7 +85,9 @@ class StudyTracker(commands.Cog):
             await StudyCollection.insert_study(study_record)
             total_minutes = await StudyCollection.find_total_study_min_in_today(str(member.id))
 
-            status, text = await self.gemini_client.create_gemini_message(f"공부시간:{total_minutes}분")
+            gemini_client = self.bot.get_gemini_client(
+                env.GEMINI_STUDY_ENCOURAGEMENT_INSTRUCTION)
+            status, text = await gemini_client.create_gemini_message(f"공부시간:{total_minutes}분")
 
             await alert_channel.send(
                 end_study_message(member.mention, minutes,
@@ -119,4 +118,4 @@ class StudyTracker(commands.Cog):
 
 # Cog 등록을 위한 필수 비동기 setup 함수
 async def setup(bot):
-    await bot.add_cog(StudyTracker(bot, env.GEMINI_STUDY_ENCOURAGEMENT_INSTRUCTION))
+    await bot.add_cog(StudyTracker(bot))

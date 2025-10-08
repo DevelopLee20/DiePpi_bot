@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 class GeminiClient:
     """Gemini AI API와 상호작용하는 클라이언트."""
 
+    _instances: dict[str, "GeminiClient"] = {}
+
     def __init__(self, instruction: str) -> None:
         """GeminiClient 초기화.
 
@@ -19,6 +21,22 @@ class GeminiClient:
         """
         self.client: genai.Chat | None = None
         self.instruction: str = instruction
+
+    @classmethod
+    def get_instance(cls, instruction: str) -> "GeminiClient":
+        """instruction별로 GeminiClient 인스턴스를 반환합니다.
+
+        동일한 instruction에 대해서는 같은 인스턴스를 재사용합니다.
+
+        Args:
+            instruction: Gemini 모델에 전달할 시스템 instruction
+
+        Returns:
+            GeminiClient 인스턴스
+        """
+        if instruction not in cls._instances:
+            cls._instances[instruction] = cls(instruction)
+        return cls._instances[instruction]
 
     async def initialize(self) -> None:
         """Gemini 클라이언트를 초기화합니다."""

@@ -6,6 +6,7 @@ from discord.ext import commands
 from core.config import BotConfig
 from core.env import env
 from db.client import close_db_connection
+from core.gemini_client import GeminiClient
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,6 +23,21 @@ class DiePpiBot(commands.Bot):
         """
         super().__init__(*args, **kwargs)
         self.config = config
+        self.gemini_clients: dict[str, "GeminiClient"] = {}
+
+    def get_gemini_client(self, instruction: str) -> "GeminiClient":
+        """instruction별로 GeminiClient 인스턴스를 반환합니다.
+
+        Args:
+            instruction: Gemini 모델에 전달할 시스템 instruction
+
+        Returns:
+            GeminiClient 인스턴스
+        """
+        if instruction not in self.gemini_clients:
+            self.gemini_clients[instruction] = GeminiClient.get_instance(
+                instruction)
+        return self.gemini_clients[instruction]
 
 
 intents = discord.Intents.default()
@@ -29,7 +45,8 @@ intents.message_content = True
 
 # 봇 설정
 config = BotConfig.from_env()
-bot = DiePpiBot(command_prefix=env.COMMAND_PREFIX, intents=intents, config=config)
+bot = DiePpiBot(command_prefix=env.COMMAND_PREFIX,
+                intents=intents, config=config)
 
 
 @bot.event
@@ -58,7 +75,8 @@ async def setup_hook():
         except ImportError as e:
             logger.error(f"❌ Failed to import {ext}: {e}")
         except Exception as e:
-            logger.error(f"❌ Unexpected error loading {ext}: {e}", exc_info=True)
+            logger.error(
+                f"❌ Unexpected error loading {ext}: {e}", exc_info=True)
 
     await bot.tree.sync()
     logger.info(f"☑️ {config.mode} mode.")

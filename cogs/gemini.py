@@ -4,8 +4,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from core.gemini_client import GeminiClient
 from core.messages import gemini_response_message
+from core.env import env
 
 logger = logging.getLogger(__name__)
 
@@ -13,15 +13,13 @@ logger = logging.getLogger(__name__)
 class GeminiCog(commands.Cog):
     """단어 검색을 위한 Gemini AI 통합 Cog."""
 
-    def __init__(self, bot: commands.Bot, gemini_instruction: str) -> None:
+    def __init__(self, bot: commands.Bot) -> None:
         """GeminiCog 초기화.
 
         Args:
             bot: Discord bot 인스턴스
-            gemini_instruction: Gemini 클라이언트 instruction
         """
         self.bot = bot
-        self.gemini = GeminiClient(gemini_instruction)
 
     @app_commands.command(
         name="단어검색", description="LLM으로 단어의 의미를 검색합니다."
@@ -34,9 +32,12 @@ class GeminiCog(commands.Cog):
             # 디스코드에게 생각중이라는 상태 전달
             await interaction.response.defer(thinking=True)
 
-            status_code, response = await self.gemini.create_gemini_message(input_word)
+            gemini_client = self.bot.get_gemini_client(
+                env.GEMINI_WORD_SEARCH_INSTRUCTION)
+            status_code, response = await gemini_client.create_gemini_message(input_word)
             if status_code:
-                text = gemini_response_message(interaction.user.mention, response)
+                text = gemini_response_message(
+                    interaction.user.mention, response)
             else:
                 text = response
 
@@ -57,6 +58,4 @@ class GeminiCog(commands.Cog):
 
 
 async def setup(bot):
-    from core.env import env
-
-    await bot.add_cog(GeminiCog(bot, env.GEMINI_WORD_SEARCH_INSTRUCTION))
+    await bot.add_cog(GeminiCog(bot))
