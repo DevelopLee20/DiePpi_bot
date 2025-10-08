@@ -3,7 +3,9 @@ import logging
 import discord
 from discord.ext import commands
 
+from core.config import BotConfig
 from core.env import env
+from db.client import close_db_connection
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -13,21 +15,14 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="/", intents=intents)
 
+# 봇 설정
+config = BotConfig.from_env()
+bot.config = config  # Cog에서 접근할 수 있도록 bot에 설정 저장
+
 
 @bot.event
 async def on_ready():
     logger.info(f"{bot.user} 준비완료다 삐!")
-
-
-# 채널 이름 설정
-if env.MODE == "PROD":
-    MODE_output = "☑️ PROD mode."
-    STUDY_CHANNEL = "공부방"
-    ALERT_CHANNEL = "스터디-알림"
-else:
-    MODE_output = "☑️ DEV mode."
-    STUDY_CHANNEL = "디스코드-봇-만드는-채널"
-    ALERT_CHANNEL = "디스코드-봇-만드는-채널"
 
 
 # 명령어 추가
@@ -48,8 +43,18 @@ async def setup_hook():
             logger.error(f"❌ Failed to load {ext}: {e}")
 
     await bot.tree.sync()
-    logger.info(MODE_output)
+    logger.info(f"☑️ {config.mode} mode.")
+
+
+@bot.event
+async def close():
+    """봇 종료 시 DB 연결 정리"""
+    logger.info("봇 종료 중... DB 연결 정리")
+    close_db_connection()
 
 
 if __name__ == "__main__":
-    bot.run(env.TOKEN)
+    try:
+        bot.run(env.TOKEN)
+    finally:
+        close_db_connection()
