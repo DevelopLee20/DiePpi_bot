@@ -3,31 +3,53 @@ import logging
 import discord
 from discord.ext import commands
 
+from core.config import BotConfig
 from core.env import env
+from core.gemini_client import GeminiClient
+from db.client import close_db_connection
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+class DiePpiBot(commands.Bot):
+    """DiePpi Discord Bot 클래스."""
+
+    def __init__(self, *args, config: BotConfig, **kwargs):
+        """DiePpiBot 초기화.
+
+        Args:
+            config: 봇 설정
+        """
+        super().__init__(*args, **kwargs)
+        self.config = config
+        self.gemini_clients: dict[str, "GeminiClient"] = {}
+
+    def get_gemini_client(self, instruction: str) -> "GeminiClient":
+        """instruction별로 GeminiClient 인스턴스를 반환합니다.
+
+        Args:
+            instruction: Gemini 모델에 전달할 시스템 instruction
+
+        Returns:
+            GeminiClient 인스턴스
+        """
+        if instruction not in self.gemini_clients:
+            self.gemini_clients[instruction] = GeminiClient.get_instance(instruction)
+        return self.gemini_clients[instruction]
+
+
 intents = discord.Intents.default()
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="/", intents=intents)
+# 봇 설정
+config = BotConfig.from_env()
+bot = DiePpiBot(command_prefix=env.COMMAND_PREFIX, intents=intents, config=config)
 
 
 @bot.event
 async def on_ready():
     logger.info(f"{bot.user} 준비완료다 삐!")
-
-
-# 채널 이름 설정
-if env.MODE == "PROD":
-    MODE_output = "☑️ PROD mode."
-    STUDY_CHANNEL = "공부방"
-    ALERT_CHANNEL = "스터디-알림"
-else:
-    MODE_output = "☑️ DEV mode."
-    STUDY_CHANNEL = "디스코드-봇-만드는-채널"
-    ALERT_CHANNEL = "디스코드-봇-만드는-채널"
 
 
 # 명령어 추가
@@ -44,12 +66,21 @@ async def setup_hook():
         try:
             await bot.load_extension(ext)
             logger.info(f"✅ {idx + 1}/{len(extensions_name)} {ext} loaded.")
+        except commands.ExtensionNotFound as e:
+            logger.error(f"❌ Extension {ext} not found: {e}")
+        except commands.ExtensionFailed as e:
+            logger.error(f"❌ Extension {ext} setup failed: {e}")
+        except ImportError as e:
+            logger.error(f"❌ Failed to import {ext}: {e}")
         except Exception as e:
-            logger.error(f"❌ Failed to load {ext}: {e}")
+            logger.error(f"❌ Unexpected error loading {ext}: {e}", exc_info=True)
 
     await bot.tree.sync()
-    logger.info(MODE_output)
+    logger.info(f"☑️ {config.mode} mode.")
 
 
 if __name__ == "__main__":
-    bot.run(env.TOKEN)
+    try:
+        bot.run(env.TOKEN)
+    finally:
+        close_db_connection()

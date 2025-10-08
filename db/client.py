@@ -5,4 +5,9 @@ from core.env import env
 # 비동기 클라이언트
 client = AsyncIOMotorClient(env.MONGO_DB)
 
-db = client["base"]
+db = client[env.DB_NAME]
+
+
+def close_db_connection():
+    """DB 연결을 종료합니다."""
+    client.close()

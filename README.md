@@ -8,3 +8,15 @@
 3. 안녕! 인사해주는 기능
 4. 잼민이(Gemini) 단어 뜻 알려주는 기능
 ```
+
+## Start
+
+```bash
+poetry run poe start
+```
+
+또는
+
+```bash
+poetry run python main.py
+```
