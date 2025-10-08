@@ -13,16 +13,15 @@ logger = logging.getLogger(__name__)
 class GeminiCog(commands.Cog):
     """단어 검색을 위한 Gemini AI 통합 Cog."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: commands.Bot, gemini_instruction: str) -> None:
         """GeminiCog 초기화.
 
         Args:
             bot: Discord bot 인스턴스
+            gemini_instruction: Gemini 클라이언트 instruction
         """
-        from core.env import env
-
         self.bot = bot
-        self.gemini = GeminiClient(env.GEMINI_WORD_SEARCH_INSTRUCTION)
+        self.gemini = GeminiClient(gemini_instruction)
 
     @app_commands.command(
         name="단어검색", description="LLM으로 단어의 의미를 검색합니다."
@@ -58,4 +57,6 @@ class GeminiCog(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(GeminiCog(bot))
+    from core.env import env
+
+    await bot.add_cog(GeminiCog(bot, env.GEMINI_WORD_SEARCH_INSTRUCTION))

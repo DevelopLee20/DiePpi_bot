@@ -10,6 +10,7 @@ from db.attend_collection import AttendCollection
 from db.study_collection import StudyCollection
 from models.study_model import StudyModel
 from utils.discord_utils import get_text_channel_by_name
+from core.env import env
 
 logger = logging.getLogger(__name__)
 
@@ -17,19 +18,16 @@ logger = logging.getLogger(__name__)
 class StudyTracker(commands.Cog):
     """음성 채널 입장/퇴장을 추적하여 공부 시간을 기록하는 Cog."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: commands.Bot, gemini_instruction: str) -> None:
         """StudyTracker 초기화.
 
         Args:
             bot: Discord bot 인스턴스
+            gemini_instruction: Gemini 클라이언트 instruction
         """
-        from core.env import env
-
         self.bot: commands.Bot = bot
         self.user_voice_times: dict[int, datetime] = {}
-        self.gemini_client: GeminiClient = GeminiClient(
-            env.GEMINI_STUDY_ENCOURAGEMENT_INSTRUCTION
-        )
+        self.gemini_client: GeminiClient = GeminiClient(gemini_instruction)
 
     def _is_study_channel_join(
         self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState
@@ -93,7 +91,8 @@ class StudyTracker(commands.Cog):
             status, text = await self.gemini_client.create_gemini_message(f"공부시간:{total_minutes}분")
 
             await alert_channel.send(
-                end_study_message(member.mention, minutes, total_minutes, text, status)
+                end_study_message(member.mention, minutes,
+                                  total_minutes, text, status)
             )
         except Exception as e:
             logger.error(f"공부 기록 저장 중 오류 발생: {e}")
@@ -120,4 +119,4 @@ class StudyTracker(commands.Cog):
 
 # Cog 등록을 위한 필수 비동기 setup 함수
 async def setup(bot):
-    await bot.add_cog(StudyTracker(bot))
+    await bot.add_cog(StudyTracker(bot, env.GEMINI_STUDY_ENCOURAGEMENT_INSTRUCTION))
