@@ -23,7 +23,9 @@ class HelloCog(commands.Cog):
     @app_commands.command(name="안녕", description="죽어삐가 인사를 건넵니다.")
     async def hello_text_command(self, interaction: discord.Interaction) -> None:
         try:
-            await interaction.response.send_message(hello_message(interaction.user.mention))
+            await interaction.response.send_message(
+                hello_message(interaction.user.mention)
+            )
         except discord.errors.HTTPException as e:
             logger.error(f"인사 메시지 전송 실패: {e}")
         except Exception as e:

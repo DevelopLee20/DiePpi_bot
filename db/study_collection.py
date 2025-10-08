@@ -19,7 +19,9 @@ class StudyCollection:
             result = await cls._collection.insert_one(insert_model)
             return str(result.inserted_id)
         except Exception as e:
-            logger.error(f"공부 기록 삽입 실패 (user_id={study.user_id}): {e}", exc_info=True)
+            logger.error(
+                f"공부 기록 삽입 실패 (user_id={study.user_id}): {e}", exc_info=True
+            )
             raise
 
     @classmethod
@@ -47,5 +49,7 @@ class StudyCollection:
 
             return total_time[0]["total_min"] if total_time else 0
         except Exception as e:
-            logger.error(f"총 공부 시간 조회 실패 (user_id={user_id}): {e}", exc_info=True)
+            logger.error(
+                f"총 공부 시간 조회 실패 (user_id={user_id}): {e}", exc_info=True
+            )
             raise

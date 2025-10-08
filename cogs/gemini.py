@@ -4,8 +4,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from core.messages import gemini_response_message
 from core.env import env
+from core.messages import gemini_response_message
 
 logger = logging.getLogger(__name__)
 
@@ -33,11 +33,13 @@ class GeminiCog(commands.Cog):
             await interaction.response.defer(thinking=True)
 
             gemini_client = self.bot.get_gemini_client(
-                env.GEMINI_WORD_SEARCH_INSTRUCTION)
-            status_code, response = await gemini_client.create_gemini_message(input_word)
+                env.GEMINI_WORD_SEARCH_INSTRUCTION
+            )
+            status_code, response = await gemini_client.create_gemini_message(
+                input_word
+            )
             if status_code:
-                text = gemini_response_message(
-                    interaction.user.mention, response)
+                text = gemini_response_message(interaction.user.mention, response)
             else:
                 text = response
 

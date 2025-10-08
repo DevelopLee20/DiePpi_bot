@@ -67,7 +67,10 @@ class RoleChange(BaseCog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(
-        self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState
+        self,
+        member: discord.Member,
+        before: discord.VoiceState,
+        after: discord.VoiceState,
     ) -> None:
         guild = member.guild
         config = self.bot.config

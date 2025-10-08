@@ -27,7 +27,10 @@ class StudyTracker(BaseCog):
         self.user_voice_times: dict[int, datetime] = {}
 
     def _is_study_channel_join(
-        self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState
+        self,
+        member: discord.Member,
+        before: discord.VoiceState,
+        after: discord.VoiceState,
     ) -> bool:
         """공부방 입장 여부를 확인합니다."""
         config = self.bot.config
@@ -37,7 +40,9 @@ class StudyTracker(BaseCog):
             and after.channel.name == config.study_channel
         )
 
-    def _is_study_channel_leave(self, before: discord.VoiceState, after: discord.VoiceState) -> bool:
+    def _is_study_channel_leave(
+        self, before: discord.VoiceState, after: discord.VoiceState
+    ) -> bool:
         """공부방 퇴장 여부를 확인합니다."""
         config = self.bot.config
         return (
@@ -46,7 +51,9 @@ class StudyTracker(BaseCog):
             and after.channel != before.channel
         )
 
-    async def _handle_study_start(self, member: discord.Member, alert_channel: discord.TextChannel | None) -> None:
+    async def _handle_study_start(
+        self, member: discord.Member, alert_channel: discord.TextChannel | None
+    ) -> None:
         """공부 시작을 처리합니다."""
         self.user_voice_times[member.id] = datetime.now()
 
@@ -61,7 +68,9 @@ class StudyTracker(BaseCog):
             except Exception as e:
                 logger.error(f"출석 체크 중 오류 발생: {e}")
 
-    async def _handle_study_end(self, member: discord.Member, alert_channel: discord.TextChannel | None) -> None:
+    async def _handle_study_end(
+        self, member: discord.Member, alert_channel: discord.TextChannel | None
+    ) -> None:
         """공부 종료를 처리합니다."""
         start_time = self.user_voice_times.pop(member.id, None)
         if not start_time:
@@ -83,24 +92,33 @@ class StudyTracker(BaseCog):
 
         try:
             await StudyCollection.insert_study(study_record)
-            total_minutes = await StudyCollection.find_total_study_min_in_today(str(member.id))
+            total_minutes = await StudyCollection.find_total_study_min_in_today(
+                str(member.id)
+            )
 
             gemini_client = self.bot.get_gemini_client(
-                env.GEMINI_STUDY_ENCOURAGEMENT_INSTRUCTION)
-            status, text = await gemini_client.create_gemini_message(f"공부시간:{total_minutes}분")
+                env.GEMINI_STUDY_ENCOURAGEMENT_INSTRUCTION
+            )
+            status, text = await gemini_client.create_gemini_message(
+                f"공부시간:{total_minutes}분"
+            )
 
             await alert_channel.send(
-                end_study_message(member.mention, minutes,
-                                  total_minutes, text, status)
+                end_study_message(member.mention, minutes, total_minutes, text, status)
             )
         except Exception as e:
             logger.error(f"공부 기록 저장 중 오류 발생: {e}")
             if alert_channel:
-                await alert_channel.send(f"{member.mention}님의 공부 기록 저장 중 오류가 발생했다 삐!")
+                await alert_channel.send(
+                    f"{member.mention}님의 공부 기록 저장 중 오류가 발생했다 삐!"
+                )
 
     @commands.Cog.listener()  # 음성 채널 상태가 변경될 때 자동으로 호출
     async def on_voice_state_update(
-        self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState
+        self,
+        member: discord.Member,
+        before: discord.VoiceState,
+        after: discord.VoiceState,
     ) -> None:
         """
         음성 채널 상태가 변경될 때 자동으로 호출되는 이벤트
