@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 
+from core.constants import DEFAULT_ROLE_REQUIREMENTS
 from core.enums import Mode, Role
 from core.env import env
 
@@ -12,10 +13,7 @@ class BotConfig:
     alert_channel: str
     mode: str
     role_requirements: list[tuple[int, Role]] = field(
-        default_factory=lambda: [
-            (180, Role.DEVELOPMENT_FAIRY),
-            (360, Role.SENIOR_FAIRY),
-        ]
+        default_factory=lambda: DEFAULT_ROLE_REQUIREMENTS
     )
 
     @classmethod
