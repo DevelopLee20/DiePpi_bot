@@ -1,7 +1,6 @@
 import logging
 from datetime import datetime
 
-import discord
 from discord.ext import commands
 
 from core.gemini_client import GeminiClient
