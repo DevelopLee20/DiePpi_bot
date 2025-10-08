@@ -3,15 +3,15 @@ import logging
 import discord
 from discord.ext import commands
 
+from cogs.base_cog import BaseCog
 from core.enums import Role
 from core.messages import upgrade_role_message
 from db.study_collection import StudyCollection
-from utils.discord_utils import get_text_channel_by_name
 
 logger = logging.getLogger(__name__)
 
 
-class RoleChange(commands.Cog):
+class RoleChange(BaseCog):
     """공부 시간에 따라 자동으로 역할을 부여하는 Cog."""
 
     def __init__(self, bot: commands.Bot) -> None:
@@ -20,7 +20,7 @@ class RoleChange(commands.Cog):
         Args:
             bot: Discord bot 인스턴스
         """
-        self.bot = bot
+        super().__init__(bot)
 
     async def _assign_role_if_eligible(
         self,
@@ -71,8 +71,7 @@ class RoleChange(commands.Cog):
     ) -> None:
         guild = member.guild
         config = self.bot.config
-
-        alert_channel = get_text_channel_by_name(guild, config.alert_channel)
+        alert_channel = self.get_alert_channel(guild)
 
         try:
             total_study_min = await StudyCollection.find_total_study_min_in_today(

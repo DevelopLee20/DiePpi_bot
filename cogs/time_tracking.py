@@ -4,17 +4,17 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
+from cogs.base_cog import BaseCog
+from core.env import env
 from core.messages import attend_study_message, end_study_message, start_study_message
 from db.attend_collection import AttendCollection
 from db.study_collection import StudyCollection
 from models.study_model import StudyModel
-from utils.discord_utils import get_text_channel_by_name
-from core.env import env
 
 logger = logging.getLogger(__name__)
 
 
-class StudyTracker(commands.Cog):
+class StudyTracker(BaseCog):
     """음성 채널 입장/퇴장을 추적하여 공부 시간을 기록하는 Cog."""
 
     def __init__(self, bot: commands.Bot) -> None:
@@ -23,7 +23,7 @@ class StudyTracker(commands.Cog):
         Args:
             bot: Discord bot 인스턴스
         """
-        self.bot: commands.Bot = bot
+        super().__init__(bot)
         self.user_voice_times: dict[int, datetime] = {}
 
     def _is_study_channel_join(
@@ -107,8 +107,7 @@ class StudyTracker(commands.Cog):
         예: 음성 채널 입장, 퇴장, 이동 시 작동
         """
         guild = member.guild
-        config = self.bot.config
-        alert_channel = get_text_channel_by_name(guild, config.alert_channel)
+        alert_channel = self.get_alert_channel(guild)
 
         if self._is_study_channel_join(member, before, after):
             await self._handle_study_start(member, alert_channel)
