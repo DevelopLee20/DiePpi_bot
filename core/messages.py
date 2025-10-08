@@ -1,11 +1,11 @@
 from core.random_messages import RandomMessageManager
 from utils.time_utils import min_to_hhmm_str
 
-rm_manager = RandomMessageManager()
+random_message_manager = RandomMessageManager()
 
 
 def hello_message(mention: str) -> str:
-    return f"{mention} {rm_manager.random_greeting_message()}"
+    return f"{mention} {random_message_manager.random_greeting_message()}"
 
 
 def start_study_message(mention: str) -> str:
@@ -20,7 +20,7 @@ def end_study_message(
     mention: str, minutes: int, total_minute: int, text: str, status: bool
 ) -> str:
     if not status:
-        text = rm_manager.random_good_job_message()
+        text = random_message_manager.random_good_job_message()
 
     return (
         f"✅ **{mention}**님이 공부를 종료했다 삐!\n"

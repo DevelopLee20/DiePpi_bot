@@ -12,5 +12,11 @@
 ## Start
 
 ```bash
+poetry run poe start
+```
+
+또는
+
+```bash
 poetry run python main.py
 ```

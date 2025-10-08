@@ -2,7 +2,9 @@ import random
 
 
 class RandomMessageManager:
-    good_job_messages = [
+    """랜덤한 인사말과 격려 메시지를 제공하는 관리자."""
+
+    good_job_messages: list[str] = [
         "대단하다 삐!",
         "엄청나다 삐!",
         "미쳤다 삐!",
@@ -21,7 +23,7 @@ class RandomMessageManager:
         "차원이 다르다 삐! 렙업했네 삐!",
     ]
 
-    greetings = [
+    greetings: list[str] = [
         "안녕하세요 삐! 만나서 반가워요!",
         "왔구나 삐! 기다리고 있었지!",
         "어서 오세요 삐~ 좋은 하루예요!",

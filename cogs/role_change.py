@@ -10,15 +10,16 @@ from utils.discord_utils import get_text_channel_by_name
 
 logger = logging.getLogger(__name__)
 
-# 역할 부여 기준 (분 단위)
-ROLE_REQUIREMENTS = [
-    (180, Role.DEVELOPMENT_FAIRY),
-    (360, Role.SENIOR_FAIRY),
-]
-
 
 class RoleChange(commands.Cog):
-    def __init__(self, bot):
+    """공부 시간에 따라 자동으로 역할을 부여하는 Cog."""
+
+    def __init__(self, bot: commands.Bot) -> None:
+        """RoleChange 초기화.
+
+        Args:
+            bot: Discord bot 인스턴스
+        """
         self.bot = bot
 
     async def _assign_role_if_eligible(
@@ -65,7 +66,9 @@ class RoleChange(commands.Cog):
             logger.error(f"역할 부여 중 오류 발생: {e}")
 
     @commands.Cog.listener()
-    async def on_voice_state_update(self, member, before, after):
+    async def on_voice_state_update(
+        self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState
+    ) -> None:
         guild = member.guild
         config = self.bot.config
 
@@ -80,7 +83,7 @@ class RoleChange(commands.Cog):
             return
 
         # 역할 부여 조건 체크
-        for min_required, role_enum in ROLE_REQUIREMENTS:
+        for min_required, role_enum in config.role_requirements:
             await self._assign_role_if_eligible(
                 member, total_study_min, min_required, role_enum, alert_channel
             )
