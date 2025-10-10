@@ -10,6 +10,7 @@ from core.messages import attend_study_message, end_study_message, start_study_m
 from db.attend_collection import AttendCollection
 from db.study_collection import StudyCollection
 from models.study_model import StudyModel
+from utils.time_utils import get_study_day_range, split_study_session_by_cutoff
 
 logger = logging.getLogger(__name__)
 
@@ -78,33 +79,66 @@ class StudyTracker(BaseCog):
 
         end_time = datetime.now()
         duration = end_time - start_time
-        minutes = int(duration.total_seconds() // 60)
+        total_minutes_studied = int(duration.total_seconds() // 60)
 
         if not alert_channel:
             return
 
-        study_record = StudyModel(
-            user_id=str(member.id),
-            start_time=start_time,
-            end_time=end_time,
-            total_min=minutes,
-        )
-
         try:
-            await StudyCollection.insert_study(study_record)
-            total_minutes = await StudyCollection.find_total_study_min_in_today(
+            # 오전 6시를 넘어가면 세션 분할
+            sessions = split_study_session_by_cutoff(start_time, end_time)
+
+            # 분할된 세션들을 각각 저장
+            study_records = [
+                StudyModel(
+                    user_id=str(member.id),
+                    start_time=session_start,
+                    end_time=session_end,
+                    total_min=session_minutes,
+                )
+                for session_start, session_end, session_minutes in sessions
+            ]
+
+            await StudyCollection.insert_multiple_studies(study_records)
+
+            # 오늘 누적 시간 조회
+            today_total = await StudyCollection.find_total_study_min_in_today(
                 str(member.id)
             )
+
+            # 전날 누적 시간 (오전 6시를 넘어간 경우만)
+            prev_day_total = None
+            if len(sessions) > 1:
+                # 전날 범위로 조회
+                prev_start, prev_end = get_study_day_range(sessions[0][0])
+                prev_day_total = 0
+
+                # 전날 범위 내의 모든 기록 조회
+                prev_records = await StudyCollection._collection.find(
+                    {
+                        "user_id": str(member.id),
+                        "start_time": {"$gte": prev_start, "$lt": prev_end},
+                    }
+                ).to_list(length=None)
+
+                prev_day_total = sum(record["total_min"] for record in prev_records)
 
             gemini_client = self.bot.get_gemini_client(
                 env.GEMINI_STUDY_ENCOURAGEMENT_INSTRUCTION
             )
             status, text = await gemini_client.create_gemini_message(
-                f"공부시간:{total_minutes}분"
+                f"공부시간:{today_total}분"
             )
 
             await alert_channel.send(
-                end_study_message(member.mention, minutes, total_minutes, text, status)
+                end_study_message(
+                    member.mention,
+                    total_minutes_studied,
+                    today_total,
+                    text,
+                    status,
+                    prev_day_total,
+                )
             )
         except Exception as e:
             logger.error(f"공부 기록 저장 중 오류 발생: {e}")

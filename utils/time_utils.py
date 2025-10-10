@@ -42,3 +42,52 @@ def get_study_day_range(time_now: datetime) -> tuple[datetime, datetime]:
     end_time = start_time + timedelta(days=1)
 
     return start_time, end_time
+
+
+def split_study_session_by_cutoff(
+    start_time: datetime, end_time: datetime
+) -> list[tuple[datetime, datetime, int]]:
+    """공부 세션이 오전 6시를 넘어가면 전날과 오늘로 분할합니다.
+
+    Args:
+        start_time: 공부 시작 시간
+        end_time: 공부 종료 시간
+
+    Returns:
+        [(start_time, end_time, minutes), ...] 리스트
+        오전 6시를 넘지 않으면 1개, 넘으면 2개의 튜플 반환
+    """
+    # 오전 6시 기준 시간 계산
+    cutoff_date = end_time.date()
+    if end_time.hour < STUDY_DAY_CUTOFF_HOUR:
+        cutoff_date = end_time.date()
+    else:
+        cutoff_date = end_time.date()
+
+    if start_time.hour < STUDY_DAY_CUTOFF_HOUR and start_time.date() == cutoff_date:
+        cutoff_date = start_time.date()
+
+    cutoff_time = datetime.combine(cutoff_date, time(STUDY_DAY_CUTOFF_HOUR, 0))
+
+    # 오전 6시를 넘지 않는 경우
+    if start_time >= cutoff_time or end_time <= cutoff_time:
+        duration = end_time - start_time
+        minutes = int(duration.total_seconds() // 60)
+        return [(start_time, end_time, minutes)]
+
+    # 오전 6시를 넘는 경우 - 전날과 오늘로 분할
+    sessions = []
+
+    # 전날 세션 (start_time ~ 오전 6시)
+    prev_duration = cutoff_time - start_time
+    prev_minutes = int(prev_duration.total_seconds() // 60)
+    if prev_minutes > 0:
+        sessions.append((start_time, cutoff_time, prev_minutes))
+
+    # 오늘 세션 (오전 6시 ~ end_time)
+    today_duration = end_time - cutoff_time
+    today_minutes = int(today_duration.total_seconds() // 60)
+    if today_minutes > 0:
+        sessions.append((cutoff_time, end_time, today_minutes))
+
+    return sessions

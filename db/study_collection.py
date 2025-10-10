@@ -25,6 +25,29 @@ class StudyCollection:
             raise
 
     @classmethod
+    async def insert_multiple_studies(cls, studies: list[StudyModel]) -> list[str]:
+        """여러 공부 기록을 한 번에 삽입합니다 (시간 분할 시 사용).
+
+        Args:
+            studies: 삽입할 공부 기록 리스트
+
+        Returns:
+            삽입된 문서들의 ID 리스트
+        """
+        try:
+            if not studies:
+                return []
+
+            insert_models = [dataclasses.asdict(study) for study in studies]
+            result = await cls._collection.insert_many(insert_models)
+            return [str(id) for id in result.inserted_ids]
+        except Exception as e:
+            logger.error(
+                f"공부 기록 일괄 삽입 실패 (count={len(studies)}): {e}", exc_info=True
+            )
+            raise
+
+    @classmethod
     async def find_total_study_min_in_today(cls, user_id: str) -> int:
         """오늘 오전 4시부터 다음날 오전 4시까지의 총 공부시간을 계산합니다.
         Args:
