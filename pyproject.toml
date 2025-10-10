@@ -17,6 +17,10 @@ pre-commit = "^4.2.0"
 google = "^3.0.0"
 google-genai = "1.10.0"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-asyncio = "^0.23.0"
+
 
 [build-system]
 requires = ["poetry-core"]
