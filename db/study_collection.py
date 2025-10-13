@@ -38,7 +38,7 @@ class StudyCollection:
             if not studies:
                 return []
 
-            insert_models = [study.model_dump() for study in studies]
+            insert_models = [dataclasses.asdict(study) for study in studies]
             result = await cls._collection.insert_many(insert_models)
             return [str(id) for id in result.inserted_ids]
         except Exception as e:
