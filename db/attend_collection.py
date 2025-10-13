@@ -39,3 +39,22 @@ class AttendCollection:
         except Exception as e:
             logger.error(f"출석 정보 조회 실패 (user_id={user_id}): {e}", exc_info=True)
             raise
+
+    @classmethod
+    async def get_today_attended_user_ids(cls) -> list[str]:
+        """오늘 출석한 유저 ID 목록을 반환합니다."""
+        try:
+            start_of_today, end_of_today = get_study_day_range(datetime.now())
+
+            # 오늘 출석한 유저들의 user_id를 조회
+            cursor = cls._collection.find(
+                {"attend_time": {"$gte": start_of_today, "$lt": end_of_today}},
+                {"user_id": 1, "_id": 0},
+            )
+
+            records = await cursor.to_list(length=None)
+            # 중복 제거하여 유저 ID 목록 반환
+            return list({record["user_id"] for record in records})
+        except Exception as e:
+            logger.error(f"오늘 출석한 유저 목록 조회 실패: {e}", exc_info=True)
+            raise

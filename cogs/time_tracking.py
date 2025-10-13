@@ -1,4 +1,5 @@
 import logging
+import random
 from datetime import datetime
 
 import discord
@@ -6,7 +7,12 @@ from discord.ext import commands
 
 from cogs.base_cog import BaseCog
 from core.env import env
-from core.messages import attend_study_message, end_study_message, start_study_message
+from core.messages import (
+    attend_study_message,
+    end_study_message,
+    start_study_message,
+    study_encouragement_message,
+)
 from db.attend_collection import AttendCollection
 from db.study_collection import StudyCollection
 from models.study_model import StudyModel
@@ -68,6 +74,34 @@ class StudyTracker(BaseCog):
                     await alert_channel.send(attend_study_message(member.mention))
             except Exception as e:
                 logger.error(f"출석 체크 중 오류 발생: {e}")
+
+            # 오늘 출석하지 않은 유저 중 랜덤으로 한 명에게 독려 멘션
+            try:
+                await self._send_encouragement_mention(member, alert_channel)
+            except Exception as e:
+                logger.error(f"독려 멘션 전송 중 오류 발생: {e}")
+
+    async def _send_encouragement_mention(
+        self, starter: discord.Member, alert_channel: discord.TextChannel
+    ) -> None:
+        """오늘 출석하지 않은 유저 중 랜덤으로 한 명에게 독려 멘션을 보냅니다."""
+        # 오늘 출석한 유저 ID 목록 가져오기
+        attended_user_ids = await AttendCollection.get_today_attended_user_ids()
+
+        # 서버의 모든 멤버 중 봇이 아니고 출석하지 않은 멤버 찾기
+        guild = starter.guild
+        unattended_members = [
+            m
+            for m in guild.members
+            if not m.bot and str(m.id) not in attended_user_ids and m.id != starter.id
+        ]
+
+        # 출석하지 않은 멤버가 있으면 랜덤으로 한 명 선택
+        if unattended_members:
+            target_member = random.choice(unattended_members)
+            await alert_channel.send(
+                study_encouragement_message(starter.mention, target_member.mention)
+            )
 
     async def _handle_study_end(
         self, member: discord.Member, alert_channel: discord.TextChannel | None

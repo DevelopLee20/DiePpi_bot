@@ -48,3 +48,7 @@ def upgrade_role_message(mention: str, role_name: str) -> str:
 
 def gemini_response_message(mention: str, response: str) -> str:
     return f"{mention} {response}"
+
+
+def study_encouragement_message(starter_mention: str, target_mention: str) -> str:
+    return f"{target_mention}도 어서 들어오라고 삐!"
