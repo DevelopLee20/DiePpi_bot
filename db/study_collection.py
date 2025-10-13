@@ -38,7 +38,7 @@ class StudyCollection:
             if not studies:
                 return []
 
-            insert_models = [dataclasses.asdict(study) for study in studies]
+            insert_models = [study.model_dump() for study in studies]
             result = await cls._collection.insert_many(insert_models)
             return [str(id) for id in result.inserted_ids]
         except Exception as e:
@@ -49,11 +49,11 @@ class StudyCollection:
 
     @classmethod
     async def find_total_study_min_in_today(cls, user_id: str) -> int:
-        """오늘 오전 4시부터 다음날 오전 4시까지의 총 공부시간을 계산합니다.
+        """오늘 오전 6시부터 다음날 오전 6시까지의 총 공부시간을 계산합니다.
         Args:
             user_id (str): 사용자의 ID
         Returns:
-            int: 오늘 오전부터 다음날 오전 4시까지의 총 공부시간 (분 단위)
+            int: 오늘 오전부터 다음날 오전 6시까지의 총 공부시간 (분 단위)
         """
         try:
             start_of_today, end_of_today = get_study_day_range(datetime.now())

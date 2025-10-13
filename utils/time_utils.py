@@ -1,7 +1,7 @@
 from datetime import datetime, time, timedelta
 
-# 공부 시간 집계 기준 시간 (오전 4시)
-STUDY_DAY_START_HOUR = 4
+# 공부 시간 집계 기준 시간 (오전 6시)
+STUDY_DAY_START_HOUR = 6
 # 전날로 간주하는 기준 시간 (오전 6시 이전)
 STUDY_DAY_CUTOFF_HOUR = 6
 
@@ -23,7 +23,7 @@ def min_to_hhmm_str(minutes: int) -> str:
 def get_study_day_range(time_now: datetime) -> tuple[datetime, datetime]:
     """공부 시간 집계를 위한 하루 범위를 계산합니다.
 
-    오전 4시부터 다음날 오전 4시까지를 하루로 간주합니다.
+    오전 6시부터 다음날 오전 6시까지를 하루로 간주합니다.
     오전 6시 이전의 시간은 전날로 계산됩니다.
 
     Args:
@@ -59,10 +59,6 @@ def split_study_session_by_cutoff(
     """
     # 오전 6시 기준 시간 계산
     cutoff_date = end_time.date()
-    if end_time.hour < STUDY_DAY_CUTOFF_HOUR:
-        cutoff_date = end_time.date()
-    else:
-        cutoff_date = end_time.date()
 
     if start_time.hour < STUDY_DAY_CUTOFF_HOUR and start_time.date() == cutoff_date:
         cutoff_date = start_time.date()
