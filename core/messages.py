@@ -17,16 +17,29 @@ def attend_study_message(mention: str) -> str:
 
 
 def end_study_message(
-    mention: str, minutes: int, total_minute: int, text: str, status: bool
+    mention: str,
+    minutes: int,
+    total_minute: int,
+    text: str,
+    status: bool,
+    prev_day_total: int | None = None,
 ) -> str:
     if not status:
         text = random_message_manager.random_good_job_message()
 
-    return (
+    message = (
         f"✅ **{mention}**님이 공부를 종료했다 삐!\n"
         f"🕒 공부 시간: **{min_to_hhmm_str(minutes)}**! \n"
-        f"📊 오늘 누적 공부 시간: **{min_to_hhmm_str(total_minute)}**!\n{text}"
     )
+
+    # 전날 누적시간이 있으면 (오전 6시를 넘어간 경우)
+    if prev_day_total is not None:
+        message += f"📊 전날 누적: **{min_to_hhmm_str(prev_day_total)}**, 오늘 누적: **{min_to_hhmm_str(total_minute)}**!\n"
+    else:
+        message += f"📊 오늘 누적 공부 시간: **{min_to_hhmm_str(total_minute)}**!\n"
+
+    message += text
+    return message
 
 
 def upgrade_role_message(mention: str, role_name: str) -> str:
