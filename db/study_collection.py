@@ -76,3 +76,47 @@ class StudyCollection:
                 f"총 공부 시간 조회 실패 (user_id={user_id}): {e}", exc_info=True
             )
             raise
+
+    @classmethod
+    async def get_yesterday_top_rankings(cls, limit: int = 3) -> list[dict]:
+        """어제(어제 오전 6시 ~ 오늘 오전 6시)의 공부 시간 순위를 반환합니다.
+
+        Args:
+            limit (int): 반환할 상위 순위 개수 (기본값: 3)
+
+        Returns:
+            list[dict]: [{"user_id": str, "total_min": int}, ...] 형태의 순위 리스트
+        """
+        try:
+            from datetime import timedelta
+
+            # 어제의 범위 계산 (어제 오전 6시 ~ 오늘 오전 6시)
+            yesterday = datetime.now() - timedelta(days=1)
+            start_of_yesterday, end_of_yesterday = get_study_day_range(yesterday)
+
+            rankings = await cls._collection.aggregate(
+                [
+                    {
+                        "$match": {
+                            "start_time": {
+                                "$gte": start_of_yesterday,
+                                "$lt": end_of_yesterday,
+                            },
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": "$user_id",
+                            "total_min": {"$sum": "$total_min"},
+                        }
+                    },
+                    {"$sort": {"total_min": -1}},
+                    {"$limit": limit},
+                    {"$project": {"_id": 0, "user_id": "$_id", "total_min": 1}},
+                ]
+            ).to_list(length=None)
+
+            return rankings
+        except Exception as e:
+            logger.error(f"어제 공부 순위 조회 실패: {e}", exc_info=True)
+            raise

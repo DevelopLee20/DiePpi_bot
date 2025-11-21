@@ -60,6 +60,7 @@ async def setup_hook():
         "cogs.time_tracking",
         "cogs.role_change",
         "cogs.gemini",
+        "cogs.study_ranking",
     ]
 
     for idx, ext in enumerate(extensions_name):

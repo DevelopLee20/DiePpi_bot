@@ -52,3 +52,26 @@ def gemini_response_message(mention: str, response: str) -> str:
 
 def study_encouragement_message(starter_mention: str, target_mention: str) -> str:
     return f"{target_mention}도 어서 들어오라고 삐!"
+
+
+def yesterday_ranking_message(rankings: list[tuple[str, int]]) -> str:
+    """어제의 공부 순위 메시지를 생성합니다.
+
+    Args:
+        rankings: [(user_mention, total_minutes), ...] 형태의 순위 리스트
+
+    Returns:
+        포맷된 순위 메시지
+    """
+    if not rankings:
+        return "📊 어제 공부 기록이 없다 삐!"
+
+    message = "📊 **어제의 공부 순위 TOP3** 삐!\n\n"
+    medals = ["🥇", "🥈", "🥉"]
+
+    for idx, (user_mention, total_min) in enumerate(rankings):
+        medal = medals[idx] if idx < len(medals) else f"{idx + 1}."
+        time_str = min_to_hhmm_str(total_min)
+        message += f"{medal} {user_mention}: **{time_str}**\n"
+
+    return message
