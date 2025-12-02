@@ -50,7 +50,7 @@ def gemini_response_message(mention: str, response: str) -> str:
     return f"{mention} {response}"
 
 
-def study_encouragement_message(starter_mention: str, target_mention: str) -> str:
+def study_encouragement_message(target_mention: str) -> str:
     return f"{target_mention}도 어서 들어오라고 삐!"
 
 

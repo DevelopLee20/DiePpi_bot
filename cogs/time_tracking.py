@@ -63,23 +63,30 @@ class StudyTracker(BaseCog):
     ) -> None:
         """공부 시작을 처리합니다."""
         self.user_voice_times[member.id] = datetime.now()
+        logger.info(f"[공부 시작 처리] alert_channel: {alert_channel}")
 
-        if alert_channel:
-            await alert_channel.send(start_study_message(member.mention))
+        if not alert_channel:
+            logger.warning(
+                f"[알림 채널 없음] 설정된 채널명: {self.bot.config.alert_channel}"
+            )
+            return
 
-            # 최초 1회만 출석체크
-            try:
-                if not await AttendCollection.get_today_user_is_attend(str(member.id)):
-                    await AttendCollection.insert_attend(str(member.id), datetime.now())
-                    await alert_channel.send(attend_study_message(member.mention))
-            except Exception as e:
-                logger.error(f"출석 체크 중 오류 발생: {e}")
+        logger.info(f"[알림 채널 발견] 채널명: {alert_channel.name}")
+        await alert_channel.send(start_study_message(member.mention))
 
-            # 오늘 출석하지 않은 유저 중 랜덤으로 한 명에게 독려 멘션
-            try:
-                await self._send_encouragement_mention(member, alert_channel)
-            except Exception as e:
-                logger.error(f"독려 멘션 전송 중 오류 발생: {e}")
+        # 최초 1회만 출석체크
+        try:
+            if not await AttendCollection.get_today_user_is_attend(str(member.id)):
+                await AttendCollection.insert_attend(str(member.id), datetime.now())
+                await alert_channel.send(attend_study_message(member.mention))
+        except Exception as e:
+            logger.error(f"출석 체크 중 오류 발생: {e}", exc_info=True)
+
+        # 오늘 출석하지 않은 유저 중 랜덤으로 한 명에게 독려 멘션
+        try:
+            await self._send_encouragement_mention(member, alert_channel)
+        except Exception as e:
+            logger.error(f"독려 멘션 전송 중 오류 발생: {e}")
 
     async def _send_encouragement_mention(
         self, starter: discord.Member, alert_channel: discord.TextChannel
@@ -87,21 +94,33 @@ class StudyTracker(BaseCog):
         """오늘 출석하지 않은 유저 중 랜덤으로 한 명에게 독려 멘션을 보냅니다."""
         # 오늘 출석한 유저 ID 목록 가져오기
         attended_user_ids = await AttendCollection.get_today_attended_user_ids()
+        logger.info(f"[독려 멘션] 출석한 유저 수: {len(attended_user_ids)}")
+        logger.info(f"[독려 멘션] 출석한 유저 ID 목록: {attended_user_ids}")
 
         # 서버의 모든 멤버 중 봇이 아니고 출석하지 않은 멤버 찾기
         guild = starter.guild
+        logger.info(f"[독려 멘션] 서버 전체 멤버 수: {len(guild.members)}")
+        logger.info(f"[독려 멘션] 입장한 유저: {starter.name} (ID: {starter.id})")
+
         unattended_members = [
             m
             for m in guild.members
             if not m.bot and str(m.id) not in attended_user_ids and m.id != starter.id
         ]
+        logger.info(f"[독려 멘션] 미출석 멤버 수: {len(unattended_members)}")
+        logger.info(
+            f"[독려 멘션] 미출석 멤버 목록: {[m.name for m in unattended_members]}"
+        )
 
         # 출석하지 않은 멤버가 있으면 랜덤으로 한 명 선택
         if unattended_members:
             target_member = random.choice(unattended_members)
-            await alert_channel.send(
-                study_encouragement_message(starter.mention, target_member.mention)
+            logger.info(
+                f"[독려 멘션] 선택된 대상: {target_member.name} (ID: {target_member.id})"
             )
+            await alert_channel.send(study_encouragement_message(target_member.mention))
+        else:
+            logger.info("[독려 멘션] 독려할 대상이 없음")
 
     async def _handle_study_end(
         self, member: discord.Member, alert_channel: discord.TextChannel | None
@@ -192,12 +211,30 @@ class StudyTracker(BaseCog):
         음성 채널 상태가 변경될 때 자동으로 호출되는 이벤트
         예: 음성 채널 입장, 퇴장, 이동 시 작동
         """
+        # 디버깅: 모든 음성 채널 변경 로깅
+        if after.channel and not before.channel:
+            logger.info(
+                f"[음성 채널 입장] {member.name} -> 채널명: '{after.channel.name}'"
+            )
+        elif before.channel and not after.channel:
+            logger.info(
+                f"[음성 채널 퇴장] {member.name} <- 채널명: '{before.channel.name}'"
+            )
+        elif before.channel and after.channel and before.channel != after.channel:
+            logger.info(
+                f"[음성 채널 이동] {member.name}: '{before.channel.name}' -> '{after.channel.name}'"
+            )
+
+        logger.info(f"[설정된 공부방 채널명] '{self.bot.config.study_channel}'")
+
         guild = member.guild
         alert_channel = self.get_alert_channel(guild)
 
         if self._is_study_channel_join(member, before, after):
+            logger.info(f"[공부방 입장 감지!] {member.name}")
             await self._handle_study_start(member, alert_channel)
         elif self._is_study_channel_leave(before, after):
+            logger.info(f"[공부방 퇴장 감지!] {member.name}")
             await self._handle_study_end(member, alert_channel)
 
 
