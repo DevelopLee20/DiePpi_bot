@@ -4,7 +4,7 @@ from datetime import datetime
 
 from db.client import db
 from models.study_model import StudyModel
-from utils.time_utils import get_study_day_range
+from utils.time_utils import get_study_day_range, get_weekly_date_range
 
 logger = logging.getLogger(__name__)
 
@@ -119,4 +119,41 @@ class StudyCollection:
             return rankings
         except Exception as e:
             logger.error(f"어제 공부 순위 조회 실패: {e}", exc_info=True)
+            raise
+
+    @classmethod
+    async def get_weekly_study_by_user(cls, user_id: str) -> list[dict]:
+        """사용자의 주간(일요일~토요일) 공부 시간을 요일별로 반환합니다.
+
+        Args:
+            user_id: 사용자 ID
+
+        Returns:
+            list[dict]: [{"day_name": "일", "total_min": 300}, ...] 형태의 7개 요일 데이터
+        """
+        try:
+            weekly_ranges = get_weekly_date_range(datetime.now())
+
+            result = []
+            for start_time, end_time, day_name in weekly_ranges:
+                total_time = await cls._collection.aggregate(
+                    [
+                        {
+                            "$match": {
+                                "user_id": user_id,
+                                "start_time": {"$gte": start_time, "$lt": end_time},
+                            }
+                        },
+                        {"$group": {"_id": None, "total_min": {"$sum": "$total_min"}}},
+                    ]
+                ).to_list(length=None)
+
+                total_min = total_time[0]["total_min"] if total_time else 0
+                result.append({"day_name": day_name, "total_min": total_min})
+
+            return result
+        except Exception as e:
+            logger.error(
+                f"주간 공부 시간 조회 실패 (user_id={user_id}): {e}", exc_info=True
+            )
             raise

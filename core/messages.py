@@ -75,3 +75,35 @@ def yesterday_ranking_message(rankings: list[tuple[str, int]]) -> str:
         message += f"{medal} {user_mention}: **{time_str}**\n"
 
     return message
+
+
+def weekly_stats_message(
+    member_name: str, daily_stats: list[dict], total_min: int, evaluation: str
+) -> str:
+    """주간 공부 통계 메시지를 생성합니다.
+
+    Args:
+        member_name: 사용자 이름
+        daily_stats: [{"day_name": "일", "total_min": 300}, ...] 형태의 7개 요일 데이터
+        total_min: 주간 총 공부 시간 (분)
+        evaluation: Gemini API로부터 받은 평가 메시지
+
+    Returns:
+        포맷된 주간 통계 메시지
+    """
+    message = f"📊 **{member_name}**님의 주간 공부 통계\n"
+    message += "=" * 30 + "\n"
+
+    for day_stat in daily_stats:
+        day_name = day_stat["day_name"]
+        min_val = day_stat["total_min"]
+        time_str = min_to_hhmm_str(min_val)
+        message += f"{day_name}: {time_str}\n"
+
+    message += "=" * 30 + "\n"
+    total_str = min_to_hhmm_str(total_min)
+    message += f"**합계: {total_str}**\n\n"
+
+    message += f"**죽어삐의 한마디:** {evaluation}"
+
+    return message

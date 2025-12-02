@@ -44,6 +44,33 @@ def get_study_day_range(time_now: datetime) -> tuple[datetime, datetime]:
     return start_time, end_time
 
 
+def get_weekly_date_range(date_now: datetime) -> list[tuple[datetime, datetime, str]]:
+    """주간(일요일~토요일) 범위를 계산하고 각 날짜별 오전 6시 기준 시간 범위를 반환합니다.
+
+    Args:
+        date_now: 기준 날짜/시간
+
+    Returns:
+        [(start_time, end_time, day_name), ...] 리스트 (일요일부터 토요일까지 7개)
+        각 범위는 해당 날짜 오전 6시 ~ 다음날 오전 6시
+    """
+    # 이번주의 일요일 찾기 (0 = 월요일, 6 = 일요일)
+    today = date_now.date()
+    days_since_sunday = (today.weekday() + 1) % 7  # 일요일 = 0
+    sunday = today - timedelta(days=days_since_sunday)
+
+    day_names = ["일", "월", "화", "수", "목", "금", "토"]
+    result = []
+
+    for i in range(7):
+        day = sunday + timedelta(days=i)
+        start = datetime.combine(day, time(STUDY_DAY_START_HOUR, 0))
+        end = start + timedelta(days=1)
+        result.append((start, end, day_names[i]))
+
+    return result
+
+
 def split_study_session_by_cutoff(
     start_time: datetime, end_time: datetime
 ) -> list[tuple[datetime, datetime, int]]:

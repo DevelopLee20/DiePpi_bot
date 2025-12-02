@@ -36,6 +36,21 @@ class RandomMessageManager:
         "반가워요! 이제 시작해볼까요 삐?",
     ]
 
+    excellent_job_messages: list[str] = [
+        "미쳤다 삐!! 이건 장인급이다!",
+        "뭐야?? 이건 진짜 미쳤다 삐!!!",
+        "언제 이렇게 됐어?? 진짜 괴물이다 삐!",
+        "이젠 더 이상 할 말이 없다 삐… 순수 경외심이다!",
+        "이 정도면 전설이다 삐!",
+    ]
+
+    lazy_messages: list[str] = [
+        "뭐했어, 삐?",
+        "이번 주는... 그냥 넘어가자 삐…",
+        "혼자만 쉬고 있었나, 삐?",
+        "뭔가 빠진 거 있지 않나, 삐?",
+    ]
+
     @classmethod
     def random_good_job_message(cls) -> str:
         return random.choice(cls.good_job_messages)
@@ -43,3 +58,11 @@ class RandomMessageManager:
     @classmethod
     def random_greeting_message(cls) -> str:
         return random.choice(cls.greetings)
+
+    @classmethod
+    def random_excellent_job_message(cls) -> str:
+        return random.choice(cls.excellent_job_messages)
+
+    @classmethod
+    def random_lazy_message(cls) -> str:
+        return random.choice(cls.lazy_messages)
